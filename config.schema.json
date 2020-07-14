@@ -1,0 +1,41 @@
+{
+  "pluginAlias": "Dwelo Lights",
+  "pluginType": "accessory",
+  "singular": false,
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Name",
+        "description": "Can be whatever you choose.",
+        "type": "string",
+        "default": "Bedroom lights",
+        "required": true
+      },
+      "token": {
+        "title": "Token",
+        "description": "See Installation section of project page for help.",
+        "type": "string",
+        "default": "199 characters long",
+        "required": true
+      },
+      "home": {
+        "title": "Home Id",
+        "description": "See Installation section of project page for help.",
+        "type": "integer",
+        "default": "222222",
+        "required": true
+      },
+      "lights": {
+        "title": "Device ID",
+        "type": "array",
+          "items": {
+            "type": "integer"
+          },
+        "description": "See Installation section of project page for help.",
+        "default": "444444",
+        "required": true
+      }
+    }
+  }
+}
