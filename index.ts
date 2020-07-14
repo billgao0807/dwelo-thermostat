@@ -6,7 +6,7 @@ module.exports = function (homebridge) {
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
 
-    homebridge.registerAccessory("homebridge-dwelo-lights", "Dwelo Lights", DweloLightsAccessory);
+    homebridge.registerAccessory("homebridge-dwelo-lights-plugin", "Dwelo Lights", DweloLightsAccessory);
 }
 
 class DweloLightsAccessory {
