@@ -9,32 +9,32 @@
         "title": "Name",
         "description": "Can be whatever you choose.",
         "type": "string",
-        "default": "Bedroom lights",
+        "placeholder": "Bedroom",
         "required": true
       },
       "token": {
         "title": "Token",
         "description": "See Installation section of project page for help.",
         "type": "string",
-        "default": "199 characters long",
+        "placeholder": "199 characters long",
         "required": true
       },
       "home": {
         "title": "Home Id",
         "description": "See Installation section of project page for help.",
         "type": "integer",
-        "default": "222222",
+        "placeholder": "222222",
         "required": true
       },
       "lights": {
         "title": "Device ID",
         "type": "array",
-          "items": {
-            "type": "integer"
-          },
+        "items": {
+          "type": "integer"
+        },
         "description": "See Installation section of project page for help.",
-        "default": "444444",
-        "required": true
+        "placeholder": "444444",
+        "minItems": 1
       }
     }
   }
