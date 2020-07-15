@@ -5,6 +5,7 @@
         ]
     },
     "include": [
-        "*.ts"
+        "index.ts",
+        "lights-api.ts"
     ]
 }
