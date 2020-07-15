@@ -11,10 +11,15 @@
     "homebridge-plugin"
   ],
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "compile": "tsc"
   },
+  "files": [
+    "config.schema.json",
+    "config.example.json",
+    "dist"
+  ],
   "engines": {
     "node": ">=4.3.2",
     "homebridge": ">=0.4.8"

@@ -1,11 +1,14 @@
 {
     "compilerOptions": {
+        "target": "ES2018",
+        "module": "commonjs",
+        "rootDir": "src",
+        "outDir": "dist",
         "lib": [
             "es2017"
         ]
     },
     "include": [
-        "index.ts",
-        "lights-api.ts"
+        "src"
     ]
 }
