@@ -19,9 +19,155 @@ class DweloLight {
             .then(() => callback(SUCCESS))
             .catch(callback);
     }
+
+    /**
+  * Handle requests to get the current value of the "Current Heating Cooling State" characteristic
+  */
+    handleCurrentHeatingCoolingStateGet(callback) {
+        // console.log('Triggered GET CurrentHeatingCoolingState');
+
+        this.api.getStatus(this.id, "state").then(currentState => {
+            console.log("CurrentHeatingCoolingState: " + currentState);
+
+            if (typeof currentState === "undefined") {
+                callback(null, 0);
+                return;
+            }
+
+            switch (currentState) {
+                case "idle":
+                    callback(null, 0);
+                    break;
+                case "heat":
+                    callback(null, 1);
+                    break;
+                case "cool":
+                    callback(null, 2);
+                    break;
+                default:
+                    callback(null, 0);
+            }
+
+        })
+            .catch(callback);
+
+
+    }
+
+
+    /**
+     * Handle requests to get the current value of the "Target Heating Cooling State" characteristic
+     */
+    handleTargetHeatingCoolingStateGet(callback) {
+        // console.log('Triggered GET TargetHeatingCoolingState');
+
+        this.api.getStatus(this.id, "mode").then(currentState => {
+            console.log("TargetHeatingCoolingState: " + currentState);
+
+            if (typeof currentState === "undefined") {
+                callback(null, 0);
+                return;
+            }
+
+            switch (currentState) {
+                case "off":
+                    callback(null, 0);
+                    break;
+                case "heat":
+                    callback(null, 1);
+                    break;
+                case "cool":
+                    callback(null, 2);
+                    break;
+                case "auto":
+                    callback(null, 3);
+                    break;
+                default:
+                    callback(null, 0);
+            }
+        }).catch(callback);
+
+    }
+
+    /**
+     * Handle requests to set the "Target Heating Cooling State" characteristic
+     */
+    handleTargetHeatingCoolingStateSet(value, callback) {
+        // console.log('Triggered SET TargetHeatingCoolingState:' + value);
+
+        // this.api.toggleLight(value, this.id)
+        //     .then(() => callback(SUCCESS))
+        //     .catch(callback);
+
+        callback(null);
+    }
+
+    /**
+     * Handle requests to get the current value of the "Current Temperature" characteristic
+     */
+    handleCurrentTemperatureGet(callback) {
+        // console.log('Triggered GET CurrentTemperature');
+
+        this.api.getStatus(this.id, "temperature").then(currentState => {
+
+            console.log("CurrentTemperature: " + currentState);
+
+            if (typeof currentState === "undefined") {
+                callback(null, 0);
+            } else {
+                callback(null, parseInt(currentState, 10));
+            }
+        }).catch(callback);
+    }
+
+
+    /**
+     * Handle requests to get the current value of the "Target Temperature" characteristic
+     */
+    handleTargetTemperatureGet(callback) {
+        // console.log('Triggered GET TargetTemperature');
+
+        // set this to a valid value for TargetTemperature
+        const currentValue = 1;
+
+        callback(null, currentValue);
+    }
+
+    /**
+     * Handle requests to set the "Target Temperature" characteristic
+     */
+    handleTargetTemperatureSet(value, callback) {
+        // console.log('Triggered SET TargetTemperature:' + value);
+
+        callback(null);
+    }
+
+    /**
+     * Handle requests to get the current value of the "Temperature Display Units" characteristic
+     */
+    handleTemperatureDisplayUnitsGet(callback) {
+        // console.log('Triggered GET TemperatureDisplayUnits');
+
+        // set this to a valid value for TemperatureDisplayUnits
+        const currentValue = 1;
+
+        callback(null, currentValue);
+    }
+
+    /**
+     * Handle requests to set the "Temperature Display Units" characteristic
+     */
+    handleTemperatureDisplayUnitsSet(value, callback) {
+        // console.log('Triggered SET TemperatureDisplayUnits:' + value);
+
+        callback(null);
+    }
 }
 
 export class DweloApi {
+    propsMap = new Map<String, String>();
+    lastUpdateTime = new Date().getTime();
+
     constructor(private readonly home, private readonly token) {
     }
 
@@ -36,7 +182,7 @@ export class DweloApi {
         let _content = undefined;
 
         const makeRequest = (method) => {
-            return new Promise<{[key: string]: any}>((resolve) => {
+            return new Promise<{ [key: string]: any }>((resolve) => {
                 const request = https.request({
                     host: 'api.dwelo.com',
                     path: path,
@@ -46,7 +192,7 @@ export class DweloApi {
                 }, function (res) {
                     res.setEncoding('utf8');
                     res.on('data', function (chunk) {
-                        console.log("->::"+chunk);
+                        // console.log("->::" + chunk);
                         resolve(JSON.parse(chunk));
                     });
                 });
@@ -76,18 +222,30 @@ export class DweloApi {
         return this.makeRequest(path).POST(command);
     }
 
-    getStatus(deviceId: number) {
-        return new Promise<boolean>((resolve) => {
-            return resolve(!!deviceMap.get(deviceId));
-        });
+    getStatus(deviceId: number, sensorType: String) {
+        console.log("getStatus: getting status for id: " + deviceId + " sensorType: " + sensorType);
 
-        // return this.makeRequest(`/v3/sensor/gateway/${this.home}/`).GET().then(r => {
-        //     const device = r.results.find(s => s.deviceId == deviceId);
-        //     if (!device) {
-        //         return false;
-        //     } else {
-        //         return device.value == 'on';
-        //     }
-        // });
+        const currTime = new Date().getTime();
+        const diff = (currTime - this.lastUpdateTime) / 1000;
+
+        if (diff > 5 || this.propsMap.size == 0) {
+            console.log("map cache stale, refreshing. eplased: " + diff);
+            this.lastUpdateTime = new Date().getTime();
+            return this.makeRequest(`/v3/sensor/gateway/${this.home}/`).GET().then(r => {
+
+
+                r.results.filter(s => s.deviceId == deviceId)
+                    .map(s =>
+                        this.propsMap.set(s.sensorType, s.value));
+
+                // console.log(this.propsMap)
+
+                return this.propsMap.get(sensorType)
+
+            });
+        }
+
+        return Promise.resolve(this.propsMap.get(sensorType));
+
     }
 }

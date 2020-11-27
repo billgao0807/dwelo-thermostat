@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "Dwelo Lights",
+  "pluginAlias": "Dwelo Thermostat",
   "pluginType": "accessory",
   "singular": false,
   "schema": {
