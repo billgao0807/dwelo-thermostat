@@ -1,13 +1,12 @@
 {
-  "private": true,
   "name": "homebridge-dwelo-thermostat-plugin",
   "displayName": "Dwelo Thermostat",
-  "version": "1.0.4",
+  "version": "1.0.0",
   "author": "",
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/leolll/dwelo-lights"
+    "url": "https://github.com/billgao0807/dwelo-thermostat"
   },
   "keywords": [
     "homebridge-plugin"
