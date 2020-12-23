@@ -1,7 +1,7 @@
 {
   "name": "homebridge-dwelo-thermostat-plugin",
   "displayName": "Dwelo Thermostat",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "",
   "license": "ISC",
   "repository": {

@@ -16,7 +16,7 @@ class DweloThermostat {
 
     private cToF(cTemp:number) {
         var fTemp = Math.round(cTemp * 9 / 5 + 32)
-        console.log("cToF: " + fTemp)
+        // console.log("cToF: " + fTemp)
         return fTemp
     }
 
@@ -25,7 +25,7 @@ class DweloThermostat {
      */
     handleCurrentHeatingCoolingStateGet(callback) {
         this.api.getStatus(this.id, "state").then(currentState => {
-            console.log('Triggered GET CurrentHeatingCoolingState: ' + currentState);
+            // console.log('Triggered GET CurrentHeatingCoolingState: ' + currentState);
 
             if (typeof currentState === "undefined") {
                 callback(null, 0);
@@ -59,7 +59,7 @@ class DweloThermostat {
      */
     handleTargetHeatingCoolingStateGet(callback) {
         this.api.getStatus(this.id, "mode").then(targetMode => {
-            console.log('Triggered GET TargetHeatingCoolingState: '+ targetMode);
+            // console.log('Triggered GET TargetHeatingCoolingState: '+ targetMode);
 
             if (typeof targetMode === "undefined") {
                 callback(null, 0);
@@ -111,7 +111,7 @@ class DweloThermostat {
                 return;
         }
 
-        console.log('Triggered SET TargetHeatingCoolingState:' + command);
+        // console.log('Triggered SET TargetHeatingCoolingState:' + command);
 
         this.api.toggleCommand(command, this.id)
             .then(() => callback(SUCCESS))
@@ -129,7 +129,7 @@ class DweloThermostat {
             } else {
                 var fTemp = parseInt(currentTemp, 10)
                 var cTemp = this.fToC(fTemp)
-                console.log('Triggered GET CurrentTemperature: ' + cTemp + " c");
+                // console.log('Triggered GET CurrentTemperature: ' + cTemp + " c");
                 callback(null, cTemp);
             }
         }).catch(callback);
@@ -175,7 +175,7 @@ class DweloThermostat {
                     return
             }
 
-            console.log('Triggered GET TargetTemperature: ' + targetFTemp);
+            // console.log('Triggered GET TargetTemperature: ' + targetFTemp);
 
             callback(null, this.fToC(targetFTemp));
         }).catch(callback);
@@ -185,14 +185,14 @@ class DweloThermostat {
      * Handle requests to set the "Target Temperature" characteristic
      */
     handleTargetTemperatureSet(value, callback) {
-        console.log('Triggered SET TargetTemperature:' + value);
+        // console.log('Triggered SET TargetTemperature:' + value);
 
         // convert target temp to F
         var targetFTemp = this.cToF(value)
 
         // issue correct command based on current mode
         this.api.getStatus(this.id, "mode").then(targetMode => {
-            console.log('Triggered SET TargetTemperature: current mode '+ targetMode);
+            // console.log('Triggered SET TargetTemperature: current mode '+ targetMode);
 
             // safeguard
             if (typeof targetMode === "undefined") {
@@ -230,7 +230,7 @@ class DweloThermostat {
      * Handle requests to get the current value of the "Temperature Display Units" characteristic
      */
     handleTemperatureDisplayUnitsGet(callback) {
-        console.log('Triggered GET TemperatureDisplayUnits');
+        // console.log('Triggered GET TemperatureDisplayUnits');
 
         // hard code it to C
         const currentValue = 0;
@@ -242,7 +242,7 @@ class DweloThermostat {
      * Handle requests to set the "Temperature Display Units" characteristic
      */
     handleTemperatureDisplayUnitsSet(value, callback) {
-        console.log('Triggered SET TemperatureDisplayUnits:' + value);
+        // console.log('Triggered SET TemperatureDisplayUnits:' + value);
 
         // no-op
         callback(null);
@@ -292,7 +292,7 @@ export class DweloApi {
                 _headers['Content-Type'] = 'application/json;charset=UTF-8';
                 _headers['Content-Length'] = Buffer.byteLength(content);
                 _content = content;
-                console.log("POST body: " + content);
+                // console.log("POST body: " + content);
                 return makeRequest('POST');
             },
             GET: () => {
@@ -317,7 +317,7 @@ export class DweloApi {
         const diff = (currTime - this.lastUpdateTime) / 1000;
 
         if (diff > 5 || this.propsMap.size == 0) {
-            console.log("map cache stale, refreshing. eplased: " + diff);
+            // console.log("map cache stale, refreshing. eplased: " + diff);
             this.lastUpdateTime = new Date().getTime();
             return this.makeRequest(`/v3/sensor/gateway/${this.home}/`).GET().then(r => {
 
