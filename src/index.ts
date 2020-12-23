@@ -23,32 +23,32 @@ class DweloLightsAccessory {
         this.api = new DweloApi(config.home, config.token);
 
         this.services = config.lights
-            .map(id => this.api.createLight(id))
-            .map(light => {
+            .map(id => this.api.createThermostat(id))
+            .map(thermostat => {
                 // const service = new Service.Lightbulb(this.name, light.id);
                 // service.getCharacteristic(Characteristic.On)
                 //     .on('get', light.get.bind(light))
                 //     .on('set', light.set.bind(light));
 
-                const service = new Service.Thermostat(this.name, light.id);
+                const service = new Service.Thermostat(this.name, thermostat.id);
                  // create handlers for required characteristics
                 service.getCharacteristic(Characteristic.CurrentHeatingCoolingState)
-                    .on('get', light.handleCurrentHeatingCoolingStateGet.bind(light));
+                    .on('get', thermostat.handleCurrentHeatingCoolingStateGet.bind(thermostat));
 
                 service.getCharacteristic(Characteristic.TargetHeatingCoolingState)
-                    .on('get', light.handleTargetHeatingCoolingStateGet.bind(light))
-                    .on('set', light.handleTargetHeatingCoolingStateSet.bind(light));
+                    .on('get', thermostat.handleTargetHeatingCoolingStateGet.bind(thermostat))
+                    .on('set', thermostat.handleTargetHeatingCoolingStateSet.bind(thermostat));
 
                 service.getCharacteristic(Characteristic.CurrentTemperature)
-                    .on('get', light.handleCurrentTemperatureGet.bind(light));
+                    .on('get', thermostat.handleCurrentTemperatureGet.bind(thermostat));
             
                 service.getCharacteristic(Characteristic.TargetTemperature)
-                    .on('get', light.handleTargetTemperatureGet.bind(light))
-                    .on('set', light.handleTargetTemperatureSet.bind(light));
+                    .on('get', thermostat.handleTargetTemperatureGet.bind(thermostat))
+                    .on('set', thermostat.handleTargetTemperatureSet.bind(thermostat));
             
                 service.getCharacteristic(Characteristic.TemperatureDisplayUnits)
-                    .on('get', light.handleTemperatureDisplayUnitsGet.bind(light))
-                    .on('set', light.handleTemperatureDisplayUnitsSet.bind(light));
+                    .on('get', thermostat.handleTemperatureDisplayUnitsGet.bind(thermostat))
+                    .on('set', thermostat.handleTemperatureDisplayUnitsSet.bind(thermostat));
 
                 return service;
             });

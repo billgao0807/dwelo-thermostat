@@ -4,30 +4,28 @@ const SUCCESS = null;
 
 const deviceMap = new Map<number, boolean>();
 
-class DweloLight {
+class DweloThermostat {
     constructor(private readonly api, public readonly id) {
     }
 
-    get = (callback) => {
-        this.api.getStatus(this.id)
-            .then(isOn => callback(SUCCESS, isOn))
-            .catch(callback);
+    private fToC(fTemp: number) {
+        var cTemp = (fTemp - 32) * 5 / 9;
+        // console.log("fToC: " + cTemp)
+        return cTemp
     }
 
-    set = (state, callback) => {
-        this.api.toggleLight(state, this.id)
-            .then(() => callback(SUCCESS))
-            .catch(callback);
+    private cToF(cTemp:number) {
+        var fTemp = Math.round(cTemp * 9 / 5 + 32)
+        console.log("cToF: " + fTemp)
+        return fTemp
     }
 
     /**
-  * Handle requests to get the current value of the "Current Heating Cooling State" characteristic
-  */
+     * Handle requests to get the current value of the "Current Heating Cooling State" characteristic
+     */
     handleCurrentHeatingCoolingStateGet(callback) {
-        // console.log('Triggered GET CurrentHeatingCoolingState');
-
         this.api.getStatus(this.id, "state").then(currentState => {
-            console.log("CurrentHeatingCoolingState: " + currentState);
+            console.log('Triggered GET CurrentHeatingCoolingState: ' + currentState);
 
             if (typeof currentState === "undefined") {
                 callback(null, 0);
@@ -46,6 +44,7 @@ class DweloLight {
                     break;
                 default:
                     callback(null, 0);
+                    return;
             }
 
         })
@@ -59,17 +58,15 @@ class DweloLight {
      * Handle requests to get the current value of the "Target Heating Cooling State" characteristic
      */
     handleTargetHeatingCoolingStateGet(callback) {
-        // console.log('Triggered GET TargetHeatingCoolingState');
+        this.api.getStatus(this.id, "mode").then(targetMode => {
+            console.log('Triggered GET TargetHeatingCoolingState: '+ targetMode);
 
-        this.api.getStatus(this.id, "mode").then(currentState => {
-            console.log("TargetHeatingCoolingState: " + currentState);
-
-            if (typeof currentState === "undefined") {
+            if (typeof targetMode === "undefined") {
                 callback(null, 0);
                 return;
             }
 
-            switch (currentState) {
+            switch (targetMode) {
                 case "off":
                     callback(null, 0);
                     break;
@@ -94,62 +91,149 @@ class DweloLight {
      */
     handleTargetHeatingCoolingStateSet(value, callback) {
         // console.log('Triggered SET TargetHeatingCoolingState:' + value);
+        var command = ""
 
-        // this.api.toggleLight(value, this.id)
-        //     .then(() => callback(SUCCESS))
-        //     .catch(callback);
+        switch (value) {
+            case 0:
+                command = "off";
+                break;
+            case 1:
+                command = "heat";
+                break;
+            case 2:
+                command = "cool";
+                break;
+            case 3:
+                command = "auto";
+                break;
+            default:
+                callback(null);
+                return;
+        }
 
-        callback(null);
+        console.log('Triggered SET TargetHeatingCoolingState:' + command);
+
+        this.api.toggleCommand(command, this.id)
+            .then(() => callback(SUCCESS))
+            .catch(callback);
     }
 
     /**
      * Handle requests to get the current value of the "Current Temperature" characteristic
      */
     handleCurrentTemperatureGet(callback) {
-        // console.log('Triggered GET CurrentTemperature');
+        this.api.getStatus(this.id, "temperature").then(currentTemp => {
 
-        this.api.getStatus(this.id, "temperature").then(currentState => {
-
-            console.log("CurrentTemperature: " + currentState);
-
-            if (typeof currentState === "undefined") {
+            if (typeof currentTemp === "undefined") {
                 callback(null, 0);
             } else {
-                callback(null, parseInt(currentState, 10));
+                var fTemp = parseInt(currentTemp, 10)
+                var cTemp = this.fToC(fTemp)
+                console.log('Triggered GET CurrentTemperature: ' + cTemp + " c");
+                callback(null, cTemp);
             }
         }).catch(callback);
     }
-
 
     /**
      * Handle requests to get the current value of the "Target Temperature" characteristic
      */
     handleTargetTemperatureGet(callback) {
-        // console.log('Triggered GET TargetTemperature');
 
-        // set this to a valid value for TargetTemperature
-        const currentValue = 1;
+        this.api.getStatus(this.id, "state").then(currentState => {
+            var targetFTemp: number = this.api.propsMap.get("temperature")
+            var cTemp = this.fToC(targetFTemp)
 
-        callback(null, currentValue);
+            if (typeof currentState === "undefined") {
+                callback(null, cTemp);
+                return;
+            }
+
+            switch (currentState) {
+                // for idel state, check if we're in heating or cooling to get the target temp, for auto, just use current temp
+                case "idle":
+                    var mode = this.api.propsMap.get("mode")
+                    switch (mode) {
+                        case "heat":
+                            targetFTemp = this.api.propsMap.get("setToHeat")
+                            break;
+                        case "cool":
+                            targetFTemp = this.api.propsMap.get("setToCool")
+                            break;
+                    }
+                    break;
+                case "heat":
+                case "pendingheat":
+                    targetFTemp = this.api.propsMap.get("setToHeat")
+                    break;
+                case "cool":
+                case "pendingcool":
+                    targetFTemp = this.api.propsMap.get("setToCool")
+                    break;
+                default:
+                    callback(null, cTemp);
+                    return
+            }
+
+            console.log('Triggered GET TargetTemperature: ' + targetFTemp);
+
+            callback(null, this.fToC(targetFTemp));
+        }).catch(callback);
     }
 
     /**
      * Handle requests to set the "Target Temperature" characteristic
      */
     handleTargetTemperatureSet(value, callback) {
-        // console.log('Triggered SET TargetTemperature:' + value);
+        console.log('Triggered SET TargetTemperature:' + value);
 
-        callback(null);
+        // convert target temp to F
+        var targetFTemp = this.cToF(value)
+
+        // issue correct command based on current mode
+        this.api.getStatus(this.id, "mode").then(targetMode => {
+            console.log('Triggered SET TargetTemperature: current mode '+ targetMode);
+
+            // safeguard
+            if (typeof targetMode === "undefined") {
+                callback(null);
+                return;
+            }
+
+            var command = ""
+
+            switch (targetMode) {
+                case "heat":
+                case "cool":
+                    command = targetMode
+                    this.api.toggleCommand(command, this.id, `,"commandValue":${targetFTemp}`)
+                        .then(() => callback(SUCCESS))
+                        .catch(callback);
+                    break;
+                case "auto":
+                    this.api.toggleCommand('cool', this.id, `,"commandValue":${targetFTemp + 2}`)
+                        .then()
+                        
+                    this.api.toggleCommand('heat', this.id, `,"commandValue":${targetFTemp}`)
+                        .then(() => callback(SUCCESS))
+                        .catch(callback);
+                    break;
+                default:
+                    callback(null);
+            }
+
+
+        }).catch(callback);
     }
 
     /**
      * Handle requests to get the current value of the "Temperature Display Units" characteristic
      */
     handleTemperatureDisplayUnitsGet(callback) {
-        // console.log('Triggered GET TemperatureDisplayUnits');
+        console.log('Triggered GET TemperatureDisplayUnits');
 
-        // set this to a valid value for TemperatureDisplayUnits
-        const currentValue = 1;
+        // hard code it to C
+        const currentValue = 0;
 
         callback(null, currentValue);
     }
@@ -158,8 +242,9 @@ class DweloLight {
      * Handle requests to set the "Temperature Display Units" characteristic
      */
     handleTemperatureDisplayUnitsSet(value, callback) {
-        // console.log('Triggered SET TemperatureDisplayUnits:' + value);
+        console.log('Triggered SET TemperatureDisplayUnits:' + value);
 
+        // no-op
         callback(null);
     }
 }
@@ -171,8 +256,8 @@ export class DweloApi {
     constructor(private readonly home, private readonly token) {
     }
 
-    createLight(id) {
-        return new DweloLight(this, id);
+    createThermostat(id) {
+        return new DweloThermostat(this, id);
     }
 
     makeRequest(path) {
@@ -207,6 +292,7 @@ export class DweloApi {
                 _headers['Content-Type'] = 'application/json;charset=UTF-8';
                 _headers['Content-Length'] = Buffer.byteLength(content);
                 _content = content;
+                console.log("POST body: " + content);
                 return makeRequest('POST');
             },
             GET: () => {
@@ -215,12 +301,14 @@ export class DweloApi {
         }
     }
 
-    toggleLight(on: boolean, id: number) {
-        const command = `{"command":"${on ? 'on' : 'off'}"}`;
+    toggleCommand(state: string, id: number, value: string = "") {
+        const command = `{"command":"${state}"${value}}`;
         const path = `/v3/device/${id}/command/`;
-        deviceMap.set(id, on);
-        return this.makeRequest(path).POST(command);
+        // deviceMap.set(id, state);
+        this.makeRequest(path).POST(command);
+        return this.makeRequest(`/v3/sensor/gateway/${this.home}/`).GET()
     }
+
 
     getStatus(deviceId: number, sensorType: String) {
         console.log("getStatus: getting status for id: " + deviceId + " sensorType: " + sensorType);
