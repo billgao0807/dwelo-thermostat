@@ -1,8 +1,8 @@
-# dwelo-lights
+# dwelo-thermostat
 Bridge Dwelo smarthome to HomeKit with HomeBridge
 
 ## Configuration
-The values of "token", "home" and "lights" are specific to your Dwelo Account. To get them, follow these steps (only needs to be done once).
+The values of "token", "home" and "thermostat" are specific to your Dwelo Account. To get them, follow these steps (only needs to be done once).
 
 ### Getting "token" value
 1. Open Chrome.
@@ -17,6 +17,6 @@ The values of "token", "home" and "lights" are specific to your Dwelo Account. T
 1. Go to `https://web.dwelo.com`, and click 'Sign In'. Log into your account.
 2. Look at the browser address bar and you'll see `https://web.dwelo.com/units/XXXXXX?community=123`.  Copy the numbers after the `units/`.  It should be 6 characters long.
 
-### Getting the "lights" value
+### Getting the "thermostat" value
 1. Go to `https://web.dwelo.com`, and click 'Sign In'. Log into your account.
-2. Hover your mouse over one of the listed lights.  You should see a tooltip saying "Light ID: XXXXXX".  Those numbers are your light ID.  It should be 6 characters long.
+2. Open Dev Tools window. On dwelo page, click 'Refresh Devices'. Then in network call section of the Dev Tools windows, find the latest XHR request named 'device', find the entry for 'deviceType': 'thermostat' and the 'uid' will be the thermostat value
